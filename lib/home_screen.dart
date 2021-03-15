@@ -1,4 +1,8 @@
+import 'dart:html';
+
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:tflite/tflite.dart';
 
 import './constants/constants.dart';
 
@@ -9,6 +13,46 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   bool _loading = true;
+  File _image;
+
+  List _output;
+  final picker = ImagePicker();
+
+  @override
+  void initState() {
+    super.initState();
+    loadModel().then((value) {
+      setState(() {});
+    });
+  }
+
+  @override
+  void dispose() {
+    Tflite.close();
+    super.dispose();
+  }
+
+  classifyImage(File image) async {
+    var output = await Tflite.runModelOnImage(
+      path: image.relativePath,
+      numResults: 2,
+      threshold: 0.5,
+      imageMean: 127.5,
+      imageStd: 127.5,
+    );
+
+    setState(() {
+      _output = output;
+      _loading = false;
+    });
+  }
+
+  loadModel() async {
+    await Tflite.loadModel(
+      model: 'assets/model_unquant.tflite',
+      labels: 'assets/labels.txt',
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +75,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 height: 10.0,
               ),
               Text(
-                'Dog and Cat Predictor',
+                'Dog and Cat Detector',
                 style: kAppNameTextStyle,
               ),
               SizedBox(
@@ -81,7 +125,10 @@ Widget _buildGestureDetector(BuildContext context, String actionType) {
         color: Color(0xFFE99600),
         borderRadius: BorderRadius.circular(6.0),
       ),
-      child: Text(actionType),
+      child: Text(
+        actionType,
+        style: kActionTextStyle,
+      ),
     ),
   );
 }

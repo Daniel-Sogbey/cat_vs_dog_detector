@@ -12,3 +12,9 @@ const kAppNameTextStyle = TextStyle(
   color: Color(0xFFE99600),
   fontWeight: FontWeight.bold,
 );
+
+const kActionTextStyle = TextStyle(
+  fontSize: 18.0,
+  color: Colors.greenAccent,
+  fontWeight: FontWeight.bold,
+);
