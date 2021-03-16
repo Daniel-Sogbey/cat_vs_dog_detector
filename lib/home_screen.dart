@@ -1,4 +1,4 @@
-import 'dart:html';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -20,10 +20,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void initState() {
-    super.initState();
     loadModel().then((value) {
       setState(() {});
     });
+
+    super.initState();
   }
 
   @override
@@ -34,7 +35,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   classifyImage(File image) async {
     var output = await Tflite.runModelOnImage(
-      path: image.relativePath,
+      path: image.path,
       numResults: 2,
       threshold: 0.5,
       imageMean: 127.5,
@@ -52,6 +53,32 @@ class _HomeScreenState extends State<HomeScreen> {
       model: 'assets/model_unquant.tflite',
       labels: 'assets/labels.txt',
     );
+  }
+
+  pickImage() async {
+    var image = await picker.getImage(source: ImageSource.camera);
+    if (image == null) {
+      return null;
+    }
+
+    setState(() {
+      _image = File(image.path);
+    });
+
+    classifyImage(_image);
+  }
+
+  pickGalleryImage() async {
+    var image = await picker.getImage(source: ImageSource.gallery);
+    if (image == null) {
+      return null;
+    }
+
+    setState(() {
+      _image = File(image.path);
+    });
+
+    classifyImage(_image);
   }
 
   @override
@@ -87,22 +114,41 @@ class _HomeScreenState extends State<HomeScreen> {
                         width: 280,
                         child: Column(
                           children: <Widget>[
-                            Image.asset('assets/cat.png'),
+                            Image.asset('assets/images/cat.png'),
                             SizedBox(
                               height: 50.0,
                             ),
                           ],
                         ),
                       )
-                    : Container(),
+                    : Container(
+                        child: Column(
+                          children: <Widget>[
+                            Container(
+                              height: 250,
+                              child: Image.file(_image),
+                            ),
+                            SizedBox(
+                              height: 20.0,
+                            ),
+                            _output != null
+                                ? Text(
+                                    '${_output[0]}',
+                                    style: kPredictionTextStyle,
+                                  )
+                                : Container(),
+                          ],
+                        ),
+                      ),
               ),
               Container(
                 width: MediaQuery.of(context).size.width,
                 child: Column(
                   children: <Widget>[
-                    _buildGestureDetector(context, 'Take a Photo'),
+                    _buildGestureDetector(context, 'Take a Photo', pickImage),
                     SizedBox(height: 20.0),
-                    _buildGestureDetector(context, 'Camera Roll')
+                    _buildGestureDetector(
+                        context, 'Camera Roll', pickGalleryImage),
                   ],
                 ),
               ),
@@ -114,9 +160,10 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-Widget _buildGestureDetector(BuildContext context, String actionType) {
+Widget _buildGestureDetector(
+    BuildContext context, String actionType, Function actionCall) {
   return GestureDetector(
-    onTap: () {},
+    onTap: actionCall,
     child: Container(
       width: MediaQuery.of(context).size.width - 150,
       alignment: Alignment.center,

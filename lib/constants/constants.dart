@@ -18,3 +18,9 @@ const kActionTextStyle = TextStyle(
   color: Colors.greenAccent,
   fontWeight: FontWeight.bold,
 );
+
+const kPredictionTextStyle = TextStyle(
+  fontSize: 20.0,
+  color: Colors.black,
+  fontWeight: FontWeight.bold,
+);
